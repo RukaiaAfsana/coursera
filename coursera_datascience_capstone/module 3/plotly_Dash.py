@@ -12,7 +12,7 @@ max_payload = spacex_df['Payload Mass (kg)'].max()
 min_payload = spacex_df['Payload Mass (kg)'].min()
 # Get unique launch sites
 launch_sites = spacex_df['Launch Site'].unique()
-# Create a dash application
+spacex_df['Launch Site'].value_counts()
 app = dash.Dash(__name__)
 
 # Create an app layout
@@ -43,10 +43,9 @@ app.layout = html.Div(children=[html.H1('SpaceX Launch Records Dashboard',
                                     id='payload-slider',
                                     min=spacex_df['Payload Mass (kg)'].min(),
                                     max=spacex_df['Payload Mass (kg)'].max(),
-                                    step=1000,
-                                    marks={i: str(i) for i in range(int(spacex_df['Payload Mass (kg)'].min()), 
-                                                                    int(spacex_df['Payload Mass (kg)'].max()), 1000)},
-                                    value=[spacex_df['Payload Mass (kg)'].min(), spacex_df['Payload Mass (kg)'].max()]
+                                    step=2500,
+                                    marks={0,10000, 2500},
+                                    value=[0, 10000]
                                 ),
 
                                 # TASK 4: Add a scatter chart to show the correlation between payload and launch success
@@ -62,9 +61,9 @@ app.layout = html.Div(children=[html.H1('SpaceX Launch Records Dashboard',
 def update_pie_chart(selected_site):
     if selected_site == 'ALL':
         # Aggregating data for all sites
-        success_counts = spacex_df['class'].value_counts().reset_index()
-        success_counts.columns = ['class', 'count']
-        fig = px.pie(success_counts, names='class', values='count', title='Total Success vs Failure Launches')
+        success_counts = spacex_df['Launch Site'].value_counts().reset_index()
+        success_counts.columns = ['Launch Site', 'count']
+        fig = px.pie(success_counts, names='Launch Site', values='count', title='Total Success Launches by Site')
     else:
         # Filtering for the selected site
         filtered_df = spacex_df[spacex_df['Launch Site'] == selected_site]
@@ -91,7 +90,7 @@ def update_scatter_chart(selected_site, payload_range):
         filtered_df = filtered_df[filtered_df['Launch Site'] == selected_site]
     
     # Create scatter plot
-    fig = px.scatter(filtered_df, x='Payload Mass (kg)', y='class', color='class',
+    fig = px.scatter(filtered_df, x='Payload Mass (kg)', y='class', color='Booster Version Category',
                      title=f"Launch Success vs Payload Mass for {selected_site if selected_site != 'ALL' else 'All Sites'}",
                      labels={'class': 'Launch Success (1 = Success, 0 = Failure)', 
                              'Payload Mass (kg)': 'Payload Mass (kg)'},
@@ -101,4 +100,4 @@ def update_scatter_chart(selected_site, payload_range):
 
 # Run the app
 if __name__ == '__main__':
-    app.run_server(debug = True)
+    app.run_server(debug = True, port = 8050)
